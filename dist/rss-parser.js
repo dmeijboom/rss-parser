@@ -124,7 +124,7 @@ var fields = module.exports = {};
 
 fields.feed = [['author', 'creator'], ['dc:publisher', 'publisher'], ['dc:creator', 'creator'], ['dc:source', 'source'], ['dc:title', 'title'], ['dc:type', 'type'], 'title', 'description', 'author', 'pubDate', 'webMaster', 'managingEditor', 'generator', 'link', 'language', 'copyright', 'lastBuildDate', 'docs', 'generator', 'ttl', 'rating', 'skipHours', 'skipDays'];
 
-fields.item = [['author', 'creator'], ['dc:creator', 'creator'], ['dc:date', 'date'], ['dc:language', 'language'], ['dc:rights', 'rights'], ['dc:source', 'source'], ['dc:title', 'title'], 'title', 'link', 'pubDate', 'author', 'summary', ['content:encoded', 'content:encoded', { includeSnippet: true }], 'enclosure', 'dc:creator', 'dc:date', 'comments'];
+fields.item = [['author', 'creator'], ['dc:creator', 'creator'], ['dc:date', 'date'], ['dc:language', 'language'], ['dc:rights', 'rights'], ['dc:source', 'source'], ['dc:title', 'title'], 'title', 'link', 'links', 'pubDate', 'author', 'summary', ['content:encoded', 'content:encoded', { includeSnippet: true }], 'enclosure', 'dc:creator', 'dc:date', 'comments'];
 
 var mapItunesField = function mapItunesField(f) {
   return ['itunes:' + f, f];
@@ -132,7 +132,7 @@ var mapItunesField = function mapItunesField(f) {
 
 fields.podcastFeed = ['author', 'subtitle', 'summary', 'explicit'].map(mapItunesField);
 
-fields.podcastItem = ['author', 'subtitle', 'summary', 'explicit', 'duration', 'image', 'episode', 'image', 'season', 'keywords'].map(mapItunesField);
+fields.podcastItem = ['author', 'subtitle', 'summary', 'explicit', 'duration', 'image', 'episode', 'image', 'season', 'keywords', 'episodeType'].map(mapItunesField);
 
 /***/ }),
 
@@ -310,6 +310,7 @@ var Parser = function () {
       }
       if (entry.link && entry.link.length) {
         item.link = utils.getLink(entry.link, 'alternate', 0);
+        item.links = utils.getLinks(entry.link);
       }
       if (entry.published && entry.published.length && entry.published[0].length) item.pubDate = new Date(entry.published[0]).toISOString();
       if (!item.pubDate && entry.updated && entry.updated.length && entry.updated[0].length) item.pubDate = new Date(entry.updated[0]).toISOString();
@@ -400,6 +401,7 @@ var Parser = function () {
         item.guid = xmlItem.guid[0];
         if (item.guid._) item.guid = item.guid._;
       }
+      item['rdf:about'] = xmlItem.$['rdf:about'];
       if (xmlItem.category) item.categories = xmlItem.category;
       this.setISODate(item);
       return item;
@@ -444,9 +446,11 @@ var Parser = function () {
       if (channel['itunes:category']) {
         var categoriesWithSubs = channel['itunes:category'].map(function (category) {
           return {
-            name: category.$.text,
+            name: category && category.$ && category.$.text,
             subs: category['itunes:category'] ? category['itunes:category'].map(function (subcategory) {
-              return { name: subcategory.$.text };
+              return {
+                name: subcategory && subcategory.$ && subcategory.$.text
+              };
             }) : null
           };
         });
@@ -460,7 +464,7 @@ var Parser = function () {
       if (channel['itunes:keywords']) {
         if (channel['itunes:keywords'].length > 1) {
           feed.itunes.keywords = channel['itunes:keywords'].map(function (keyword) {
-            return keyword.$.text;
+            return keyword && keyword.$ && keyword.$.text;
           });
         } else {
           var keywords = channel['itunes:keywords'][0];
@@ -558,6 +562,27 @@ utils.stripHtml = function (str) {
 
 utils.getSnippet = function (str) {
   return entities.decodeHTML(utils.stripHtml(str)).trim();
+};
+
+utils.getLinks = function (links) {
+  var optFields = ['rel', 'type', 'hreflang', 'title', 'length'];
+  var output = [];
+
+  for (var i = 0; i < links.length; i++) {
+    var link = {
+      href: links[i].$.href
+    };
+
+    for (var j = 0; j < optFields.length; j++) {
+      if (links[i].$[optFields[j]]) {
+        link[optFields[j]] = links[i].$[optFields[j]];
+      }
+    }
+
+    output.push(link);
+  }
+
+  return output;
 };
 
 utils.getLink = function (links, rel, fallbackIdx) {
