@@ -1,0 +1,45 @@
+{
+    "feed": {
+        "title": "Example Feed",
+        "subtitle": "A subtitle.",
+        "link": "http://example.com/feed",
+        "updated": "2013-12-13T13:00:00Z",
+        "id": "urn:uuid:60a76c80-d399-11d9-b91C-0003939e0af6",
+        "items": [
+            {
+                "id": "urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a",
+                "title": "Atom-Powered Robots Run Amok",
+                "link": "http://example.org/2005/04/02/atom03",
+                "links": [
+                    {
+                        "href": "http://example.org/2005/04/02/atom03"
+                    },
+                    {
+                        "href": "http://example.org/image1.jpg",
+                        "rel": "enclosure",
+                        "type": "image/jpeg"
+                    }
+                ],
+                "updated": "2003-12-13T18:30:02Z",
+                "summary": "Some text."
+            },
+            {
+                "id": "urn:uuid:1225c695-cfb8-4ebb-aaaa-80da344efa6a",
+                "title": "Atom-Powered Robots Run Amok",
+                "link": "http://example.org/2005/04/02/atom03",
+                "links": [
+                    {
+                        "href": "http://example.org/2005/04/02/atom03"
+                    },
+                    {
+                        "href": "http://example.org/image2.jpg",
+                        "rel": "enclosure",
+                        "type": "image/jpeg"
+                    }
+                ],
+                "updated": "2003-12-13T18:30:02Z",
+                "summary": "Some text."
+            }
+        ]
+    }
+}
